@@ -1,272 +1,330 @@
 <!DOCTYPE html>
 <html lang="es">
-<!-- [Head section con estilos previos...] -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema RPA de Auditoría con IA</title>
+    <title>Sistema RPA de Auditoría</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <style>
-        /* [Estilos previos...] */
-        
-        /* Nuevos estilos para el área de IA */
-        .chat-container {
-            height: 500px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px;
+        /* Estilos previos... */
+        .user-nav {
             background-color: #f8f9fa;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-
-        .user-message {
-            background-color: #007bff;
-            color: white;
-            margin-left: auto;
-        }
-
-        .ai-message {
-            background-color: white;
-            border: 1px solid #ddd;
-        }
-
-        .chat-input {
-            display: flex;
             padding: 15px;
-            background-color: white;
-            border-top: 1px solid #ddd;
-        }
-
-        .chat-input textarea {
-            flex-grow: 1;
-            margin-right: 10px;
-            resize: none;
-            height: 40px;
-        }
-
-        .analysis-section {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f8f9fa;
             border-radius: 8px;
-        }
-
-        .tool-selection {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .tool-card {
-            background-color: white;
-            padding: 15px;
+        .user-nav a {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+
+        .user-nav a:hover {
+            background-color: #e9ecef;
+        }
+
+        .user-nav a.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .notification-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 40px;
             border-radius: 8px;
-            border: 1px solid #ddd;
+            margin-bottom: 30px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
             cursor: pointer;
             transition: transform 0.2s;
         }
 
-        .tool-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        .action-card:hover {
+            transform: translateY(-5px);
         }
 
-        .analysis-result {
-            background-color: white;
+        .profile-section {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        .profile-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-unread {
+            background-color: #f8f9fa;
+        }
+
+        .help-section {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        .help-navigation {
+            border-right: 1px solid #ddd;
+            padding-right: 20px;
+        }
+
+        .help-content {
             padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav-links">
-            <a href="#" onclick="showSection('user-section')">Área de Usuario</a>
-            <a href="#" onclick="showSection('audit-section')">Área de Auditoría</a>
-            <a href="#" onclick="showSection('admin-section')">Área de Administración</a>
-            <a href="#" onclick="showSection('ai-section')">Inteligencia Artificial</a>
-            <a href="#" onclick="logout()">Cerrar Sesión</a>
-        </div>
-    </nav>
+    <!-- [Navegación principal previa...] -->
 
-    <!-- [Secciones previas...] -->
-
-    <!-- Nueva Área de Inteligencia Artificial -->
-    <div id="ai-section" class="section container">
-        <h2>Asistente de Auditoría IA</h2>
-        
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <h3>Análisis Realizados</h3>
-                <div class="stat-number">24</div>
-            </div>
-            <div class="stat-card">
-                <h3>Precisión Promedio</h3>
-                <div class="stat-number">95%</div>
-            </div>
-            <div class="stat-card">
-                <h3>Tiempo Ahorrado</h3>
-                <div class="stat-number">45h</div>
-            </div>
+    <!-- Área de Usuario Expandida -->
+    <div id="user-section" class="section container">
+        <div class="user-nav">
+            <a href="#" onclick="showUserSection('home')" class="active">Inicio</a>
+            <a href="#" onclick="showUserSection('dashboard')">Dashboard</a>
+            <a href="#" onclick="showUserSection('profile')">Perfil</a>
+            <a href="#" onclick="showUserSection('notifications')">Notificaciones <span class="notification-badge">3</span></a>
+            <a href="#" onclick="showUserSection('help')">Ayuda</a>
         </div>
 
-        <div class="tool-selection">
-            <div class="tool-card" onclick="selectTool('risk')">
-                <h3>Análisis de Riesgos</h3>
-                <p>Identifica y evalúa riesgos potenciales en documentos y procesos.</p>
+        <!-- Página de Inicio -->
+        <div id="user-home" class="user-subsection">
+            <div class="welcome-banner">
+                <h2>¡Bienvenido, Juan!</h2>
+                <p>Última conexión: 7 de octubre, 2024 09:15</p>
             </div>
-            <div class="tool-card" onclick="selectTool('compliance')">
-                <h3>Verificación de Cumplimiento</h3>
-                <p>Analiza el cumplimiento normativo y regulatorio.</p>
-            </div>
-            <div class="tool-card" onclick="selectTool('fraud')">
-                <h3>Detección de Fraude</h3>
-                <p>Identifica patrones y anomalías sospechosas.</p>
-            </div>
-            <div class="tool-card" onclick="selectTool('report')">
-                <h3>Generación de Informes</h3>
-                <p>Crea informes detallados basados en análisis de IA.</p>
-            </div>
-        </div>
 
-        <div class="chat-container">
-            <div class="chat-messages" id="chat-messages">
-                <div class="message ai-message">
-                    ¡Hola! Soy tu asistente de auditoría IA. ¿En qué puedo ayudarte hoy?
+            <div class="quick-actions">
+                <div class="action-card" onclick="startNewAudit()">
+                    <h3>Nueva Auditoría</h3>
+                    <p>Iniciar un nuevo proceso de auditoría</p>
+                </div>
+                <div class="action-card" onclick="viewReports()">
+                    <h3>Ver Reportes</h3>
+                    <p>Acceder a reportes recientes</p>
+                </div>
+                <div class="action-card" onclick="uploadDocuments()">
+                    <h3>Subir Documentos</h3>
+                    <p>Cargar nuevos documentos</p>
+                </div>
+                <div class="action-card" onclick="scheduleAudit()">
+                    <h3>Programar</h3>
+                    <p>Agendar próximas auditorías</p>
                 </div>
             </div>
-            <div class="chat-input">
-                <textarea 
-                    id="user-input" 
-                    placeholder="Escribe tu consulta aquí..."
-                    onkeypress="handleKeyPress(event)"></textarea>
-                <button onclick="sendMessage()">Enviar</button>
+
+            <h3>Actividad Reciente</h3>
+            <div class="recent-activity">
+                <!-- Lista de actividades recientes -->
             </div>
         </div>
 
-        <div class="analysis-section">
-            <h3>Análisis en Curso</h3>
-            <div class="form-group">
-                <label for="analysisFile">Cargar Documento para Análisis:</label>
-                <input type="file" id="analysisFile" accept=".pdf,.doc,.docx,.xls,.xlsx">
-                <button onclick="analyzeDocument()">Iniciar Análisis</button>
+        <!-- Dashboard -->
+        <div id="user-dashboard" class="user-subsection" style="display: none;">
+            <h2>Dashboard</h2>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Auditorías Activas</h3>
+                    <div class="stat-number">5</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pendientes de Revisión</h3>
+                    <div class="stat-number">3</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completadas este Mes</h3>
+                    <div class="stat-number">12</div>
+                </div>
             </div>
-            <div class="analysis-result" id="analysis-result">
-                <!-- Resultados del análisis aparecerán aquí -->
+
+            <div class="chart-container">
+                <!-- Gráficos y estadísticas -->
+            </div>
+        </div>
+
+        <!-- Perfil de Usuario -->
+        <div id="user-profile" class="user-subsection" style="display: none;">
+            <h2>Perfil de Usuario</h2>
+            <div class="profile-section">
+                <div class="profile-sidebar">
+                    <img src="/api/placeholder/200/200" alt="Foto de perfil" class="profile-image">
+                    <button onclick="updateProfileImage()">Cambiar Foto</button>
+                </div>
+                <div class="profile-details">
+                    <div class="form-group">
+                        <label>Nombre Completo:</label>
+                        <input type="text" value="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" value="juan.perez@empresa.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Departamento:</label>
+                        <input type="text" value="Auditoría Interna">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol:</label>
+                        <input type="text" value="Auditor Senior" disabled>
+                    </div>
+                    <button onclick="saveProfile()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notificaciones -->
+        <div id="user-notifications" class="user-subsection" style="display: none;">
+            <h2>Notificaciones</h2>
+            <div class="notification-list">
+                <div class="notification-item notification-unread">
+                    <div>
+                        <h4>Nueva Auditoría Asignada</h4>
+                        <p>Se te ha asignado la auditoría #A2024-15</p>
+                        <small>Hace 1 hora</small>
+                    </div>
+                </div>
+                <div class="notification-item notification-unread">
+                    <div>
+                        <h4>Documento Pendiente de Revisión</h4>
+                        <p>El reporte Q3 requiere tu revisión</p>
+                        <small>Hace 3 horas</small>
+                    </div>
+                </div>
+                <!-- Más notificaciones... -->
+            </div>
+        </div>
+
+        <!-- Ayuda y Documentación -->
+        <div id="user-help" class="user-subsection" style="display: none;">
+            <h2>Centro de Ayuda</h2>
+            <div class="search-box">
+                <input type="text" placeholder="Buscar en la documentación...">
+            </div>
+            <div class="help-section">
+                <div class="help-navigation">
+                    <h3>Temas</h3>
+                    <ul>
+                        <li><a href="#" onclick="showHelpTopic('getting-started')">Comenzando</a></li>
+                        <li><a href="#" onclick="showHelpTopic('audit-process')">Proceso de Auditoría</a></li>
+                        <li><a href="#" onclick="showHelpTopic('reports')">Reportes</a></li>
+                        <li><a href="#" onclick="showHelpTopic('faq')">Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="help-content">
+                    <h3>Comenzando con el Sistema RPA</h3>
+                    <p>Esta guía te ayudará a familiarizarte con las principales funciones del sistema...</p>
+                    <!-- Contenido de ayuda... -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // [Scripts previos...]
+        // Funciones para el área de usuario
+        function showUserSection(section) {
+            // Actualizar navegación
+            document.querySelectorAll('.user-nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`.user-nav a[onclick*="${section}"]`).classList.add('active');
 
-        // Nuevas funciones para el área de IA
-        let selectedTool = null;
+            // Ocultar todas las subsecciones
+            document.querySelectorAll('.user-subsection').forEach(div => div.style.display = 'none');
 
-        function selectTool(tool) {
-            selectedTool = tool;
-            const message = `Has seleccionado la herramienta de ${getToolName(tool)}. ¿Cómo puedo ayudarte con esto?`;
-            addMessage(message, 'ai');
+            // Mostrar la subsección seleccionada
+            document.getElementById(`user-${section}`).style.display = 'block';
         }
 
-        function getToolName(tool) {
-            const tools = {
-                'risk': 'Análisis de Riesgos',
-                'compliance': 'Verificación de Cumplimiento',
-                'fraud': 'Detección de Fraude',
-                'report': 'Generación de Informes'
-            };
-            return tools[tool] || tool;
+        function startNewAudit() {
+            // Implementar lógica para iniciar nueva auditoría
+            alert('Iniciando nueva auditoría...');
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+        function viewReports() {
+            // Implementar lógica para ver reportes
+            alert('Cargando reportes...');
         }
 
-        function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            
-            if (message) {
-                addMessage(message, 'user');
-                input.value = '';
-                
-                // Simular respuesta de la IA
-                setTimeout(() => {
-                    const aiResponse = generateAIResponse(message);
-                    addMessage(aiResponse, 'ai');
-                }, 1000);
-            }
+        function uploadDocuments() {
+            // Implementar lógica para subir documentos
+            alert('Abriendo formulario de carga de documentos...');
         }
 
-        function addMessage(message, type) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}-message`;
-            messageDiv.textContent = message;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function scheduleAudit() {
+            // Implementar lógica para programar auditoría
+            alert('Abriendo calendario de programación...');
         }
 
-        function generateAIResponse(message) {
-            // Simulación de respuestas basadas en el contexto
-            if (selectedTool === 'risk') {
-                return "Basado en el análisis de riesgos, he identificado los siguientes puntos críticos...";
-            } else if (selectedTool === 'compliance') {
-                return "He revisado las regulaciones aplicables y encontré las siguientes observaciones...";
-            } else if (selectedTool === 'fraud') {
-                return "El análisis de patrones ha revelado algunas anomalías que requieren atención...";
-            } else if (selectedTool === 'report') {
-                return "Generando informe detallado. ¿Hay algún aspecto específico que quieras que destaque?";
-            } else {
-                return "Entiendo tu consulta. ¿Podrías proporcionarme más detalles para ayudarte mejor?";
-            }
+        function updateProfileImage() {
+            // Implementar lógica para actualizar imagen de perfil
+            alert('Seleccione una nueva imagen de perfil');
         }
 
-        function analyzeDocument() {
-            const file = document.getElementById('analysisFile').files[0];
-            if (!file) {
-                alert('Por favor selecciona un documento para analizar');
-                return;
-            }
-
-            const resultDiv = document.getElementById('analysis-result');
-            resultDiv.innerHTML = '<p>Analizando documento...</p>';
-
-            // Simulación de análisis
-            setTimeout(() => {
-                resultDiv.innerHTML = `
-                    <h4>Resultados del Análisis</h4>
-                    <p><strong>Documento:</strong> ${file.name}</p>
-                    <p><strong>Nivel de Riesgo:</strong> Medio</p>
-                    <p><strong>Cumplimiento:</strong> 87%</p>
-                    <p><strong>Hallazgos:</strong></p>
-                    <ul>
-                        <li>Se identificaron 3 áreas de mejora en procesos internos</li>
-                        <li>2 posibles discrepancias en registros financieros</li>
-                        <li>Recomendaciones de actualización en políticas de cumplimiento</li>
-                    </ul>
-                `;
-            }, 2000);
+        function saveProfile() {
+            // Implementar lógica para guardar perfil
+            alert('Cambios guardados exitosamente');
         }
+
+        function showHelpTopic(topic) {
+            // Implementar lógica para mostrar temas de ayuda
+            alert('Cargando tema de ayuda: ' + topic);
+        }
+
+        // Mostrar página de inicio por defecto
+        showUserSection('home');
     </script>
 </body>
 </html>
