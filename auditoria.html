@@ -1,7 +1,172 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARPA - Auditoría</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARPA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], 
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RPA de Auditoría</h1>
+            <p>Sistema automatizado para procesos de auditoría</p>
+        </div>
+
+        <div class="form-group">
+            <label for="processName">Nombre del Proceso:</label>
+            <input type="text" id="processName" placeholder="Ej: Auditoría Financiera Q2 2024">
+        </div>
+
+        <div class="form-group">
+            <label for="documentsInput">Documentos a Procesar:</label>
+            <input type="file" id="documentsInput" multiple>
+        </div>
+
+        <div class="form-group">
+            <label for="auditRules">Reglas de Auditoría:</label>
+            <textarea id="auditRules" rows="4" placeholder="Ingrese las reglas de auditoría..."></textarea>
+        </div>
+
+        <div class="actions">
+            <button onclick="startAudit()">Iniciar Auditoría</button>
+            <button onclick="generateReport()">Generar Reporte</button>
+        </div>
+
+        <div class="log" id="auditLog">
+            <!-- Aquí se mostrarán los logs del proceso -->
+        </div>
+
+        <div class="results" id="auditResults">
+            <!-- Aquí se mostrarán los resultados -->
+        </div>
+    </div>
+
+    <script>
+        // Simulación de conexión con Azure Cognitive Services
+        const azureConfig = {
+            key: "TU_AZURE_KEY",
+            region: "TU_REGION"
+        };
+
+        function logMessage(message) {
+            const logDiv = document.getElementById('auditLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function startAudit() {
+            const processName = document.getElementById('processName').value;
+            const files = document.getElementById('documentsInput').files;
+            const rules = document.getElementById('auditRules').value;
+
+            if (!processName || files.length === 0 || !rules) {
+                alert('Por favor complete todos los campos');
+                return;
+            }
+
+            logMessage('Iniciando proceso de auditoría...');
+            
+            // Simulación del proceso RPA
+            for (let i = 0; i < files.length; i++) {
+                logMessage(`Procesando documento: ${files[i].name}`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulación de procesamiento
+            }
+
+            logMessage('Aplicando reglas de auditoría...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            logMessage('Proceso completado exitosamente');
+            
+            // Mostrar resultados de ejemplo
+            document.getElementById('auditResults').innerHTML = `
+                <h3>Resultados de la Auditoría</h3>
+                <p>Proceso: ${processName}</p>
+                <p>Documentos procesados: ${files.length}</p>
+                <p>Estado: Completado</p>
+                <p>Hallazgos: 3 excepciones encontradas</p>
+            `;
+        }
+
+        function generateReport() {
+            logMessage('Generando reporte de auditoría...');
+            
+            // Aquí se podría implementar la generación real del reporte
+            setTimeout(() => {
+                const blob = new Blob(['Reporte de Auditoría\n\nFecha: ' + new Date().toLocaleDateString()], 
+                    { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'reporte-auditoria.txt';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                logMessage('Reporte generado y descargado');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
