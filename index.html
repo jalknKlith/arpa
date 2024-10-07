@@ -3,214 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log y Actividad del Sistema - RPA Auditoría</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>RPA Auditoría</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
     <style>
-        .log-level-error { background-color: #FEE2E2; }
-        .log-level-warning { background-color: #FEF3C7; }
-        .log-level-info { background-color: #DBEAFE; }
-        .log-level-success { background-color: #D1FAE5; }
-        
-        .filter-active {
-            background-color: #2563EB;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], 
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
             color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Log y Actividad del Sistema</h1>
-            <p class="text-gray-600">Monitoreo y auditoría de actividades RPA</p>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RPA de Auditoría</h1>
+            <p>Sistema automatizado para procesos de auditoría</p>
         </div>
 
-        <!-- Panel de Filtros y Búsqueda -->
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Búsqueda -->
-                <div class="col-span-1 md:col-span-2">
-                    <div class="relative">
-                        <input type="text" 
-                               placeholder="Buscar en logs..." 
-                               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                               id="searchInput">
-                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                    </div>
-                </div>
-
-                <!-- Filtro de Fecha -->
-                <div>
-                    <select class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                            id="dateFilter">
-                        <option value="today">Hoy</option>
-                        <option value="yesterday">Ayer</option>
-                        <option value="last7days">Últimos 7 días</option>
-                        <option value="last30days">Últimos 30 días</option>
-                        <option value="custom">Personalizado</option>
-                    </select>
-                </div>
-
-                <!-- Exportar -->
-                <div>
-                    <button onclick="exportLogs()" 
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                        <i class="fas fa-download mr-2"></i>Exportar
-                    </button>
-                </div>
-            </div>
-
-            <!-- Filtros Adicionales -->
-            <div class="mt-4 flex flex-wrap gap-2">
-                <button onclick="toggleFilter(this, 'error')" 
-                        class="px-4 py-1 rounded-full border border-red-500 text-red-500 hover:bg-red-50">
-                    <i class="fas fa-times-circle mr-1"></i>Error
-                </button>
-                <button onclick="toggleFilter(this, 'warning')" 
-                        class="px-4 py-1 rounded-full border border-yellow-500 text-yellow-500 hover:bg-yellow-50">
-                    <i class="fas fa-exclamation-triangle mr-1"></i>Warning
-                </button>
-                <button onclick="toggleFilter(this, 'info')" 
-                        class="px-4 py-1 rounded-full border border-blue-500 text-blue-500 hover:bg-blue-50">
-                    <i class="fas fa-info-circle mr-1"></i>Info
-                </button>
-                <button onclick="toggleFilter(this, 'success')" 
-                        class="px-4 py-1 rounded-full border border-green-500 text-green-500 hover:bg-green-50">
-                    <i class="fas fa-check-circle mr-1"></i>Success
-                </button>
-            </div>
+        <div class="form-group">
+            <label for="processName">Nombre del Proceso:</label>
+            <input type="text" id="processName" placeholder="Ej: Auditoría Financiera Q2 2024">
         </div>
 
-        <!-- Tabla de Logs -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proceso</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mensaje</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logTableBody">
-                        <!-- Los logs se agregarán aquí dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
+        <div class="form-group">
+            <label for="documentsInput">Documentos a Procesar:</label>
+            <input type="file" id="documentsInput" multiple>
         </div>
 
-        <!-- Paginación -->
-        <div class="mt-4 flex justify-between items-center">
-            <div class="text-gray-600">
-                Mostrando 1-10 de 100 registros
-            </div>
-            <div class="flex gap-2">
-                <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Anterior</button>
-                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">1</button>
-                <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">2</button>
-                <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">3</button>
-                <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Siguiente</button>
-            </div>
+        <div class="form-group">
+            <label for="auditRules">Reglas de Auditoría:</label>
+            <textarea id="auditRules" rows="4" placeholder="Ingrese las reglas de auditoría..."></textarea>
+        </div>
+
+        <div class="actions">
+            <button onclick="startAudit()">Iniciar Auditoría</button>
+            <button onclick="generateReport()">Generar Reporte</button>
+        </div>
+
+        <div class="log" id="auditLog">
+            <!-- Aquí se mostrarán los logs del proceso -->
+        </div>
+
+        <div class="results" id="auditResults">
+            <!-- Aquí se mostrarán los resultados -->
         </div>
     </div>
 
     <script>
-        // Datos de ejemplo
-        const logs = [
-            {
-                timestamp: '2024-03-04 10:30:15',
-                level: 'error',
-                process: 'Facturación RPA',
-                user: 'sistema',
-                message: 'Error en la conexión con el servidor de facturación'
-            },
-            {
-                timestamp: '2024-03-04 10:29:00',
-                level: 'success',
-                process: 'Proceso de Nómina',
-                user: 'juan.perez',
-                message: 'Proceso completado exitosamente'
-            },
-            {
-                timestamp: '2024-03-04 10:28:30',
-                level: 'warning',
-                process: 'Validación de Datos',
-                user: 'maria.garcia',
-                message: 'Datos incompletos en el registro #1234'
-            },
-            {
-                timestamp: '2024-03-04 10:27:45',
-                level: 'info',
-                process: 'Login',
-                user: 'admin',
-                message: 'Inicio de sesión exitoso'
+        // Simulación de conexión con Azure Cognitive Services
+        const azureConfig = {
+            key: "TU_AZURE_KEY",
+            region: "TU_REGION"
+        };
+
+        function logMessage(message) {
+            const logDiv = document.getElementById('auditLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function startAudit() {
+            const processName = document.getElementById('processName').value;
+            const files = document.getElementById('documentsInput').files;
+            const rules = document.getElementById('auditRules').value;
+
+            if (!processName || files.length === 0 || !rules) {
+                alert('Por favor complete todos los campos');
+                return;
             }
-        ];
 
-        // Renderizar logs
-        function renderLogs() {
-            const tbody = document.getElementById('logTableBody');
-            tbody.innerHTML = logs.map(log => `
-                <tr class="log-level-${log.level}">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${log.timestamp}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold
-                            ${log.level === 'error' ? 'bg-red-200 text-red-800' : 
-                              log.level === 'warning' ? 'bg-yellow-200 text-yellow-800' :
-                              log.level === 'info' ? 'bg-blue-200 text-blue-800' :
-                              'bg-green-200 text-green-800'}">
-                            ${log.level.toUpperCase()}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${log.process}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${log.user}</td>
-                    <td class="px-6 py-4 text-sm">${log.message}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <button onclick="showDetails('${log.timestamp}')" 
-                                class="text-blue-600 hover:text-blue-900">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            logMessage('Iniciando proceso de auditoría...');
+            
+            // Simulación del proceso RPA
+            for (let i = 0; i < files.length; i++) {
+                logMessage(`Procesando documento: ${files[i].name}`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulación de procesamiento
+            }
+
+            logMessage('Aplicando reglas de auditoría...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            logMessage('Proceso completado exitosamente');
+            
+            // Mostrar resultados de ejemplo
+            document.getElementById('auditResults').innerHTML = `
+                <h3>Resultados de la Auditoría</h3>
+                <p>Proceso: ${processName}</p>
+                <p>Documentos procesados: ${files.length}</p>
+                <p>Estado: Completado</p>
+                <p>Hallazgos: 3 excepciones encontradas</p>
+            `;
         }
 
-        // Función para alternar filtros
-        function toggleFilter(button, filter) {
-            button.classList.toggle('filter-active');
-            // Implementar lógica de filtrado
+        function generateReport() {
+            logMessage('Generando reporte de auditoría...');
+            
+            // Aquí se podría implementar la generación real del reporte
+            setTimeout(() => {
+                const blob = new Blob(['Reporte de Auditoría\n\nFecha: ' + new Date().toLocaleDateString()], 
+                    { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'reporte-auditoria.txt';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                logMessage('Reporte generado y descargado');
+            }, 1000);
         }
-
-        // Función para exportar logs
-        function exportLogs() {
-            alert('Exportando logs...');
-            // Implementar lógica de exportación
-        }
-
-        // Función para mostrar detalles
-        function showDetails(timestamp) {
-            alert(`Mostrando detalles del log: ${timestamp}`);
-            // Implementar visualización de detalles
-        }
-
-        // Inicializar la tabla
-        renderLogs();
-
-        // Evento de búsqueda
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            // Implementar lógica de búsqueda
-            console.log('Buscando:', e.target.value);
-        });
-
-        // Evento de filtro de fecha
-        document.getElementById('dateFilter').addEventListener('change', function(e) {
-            // Implementar lógica de filtrado por fecha
-            console.log('Filtro de fecha:', e.target.value);
-        });
     </script>
 </body>
 </html>
