@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RPA de Auditoría</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    <style>
+        /* [Estilos previos...] */
+
+        /* Estilos para área de auditoría */
+        .audit-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .audit-list-table th, 
+        .audit-list-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .audit-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active { background-color: #28a745; color: white; }
+        .status-pending { background-color: #ffc107; color: black; }
+        .status-completed { background-color: #6c757d; color: white; }
+
+        .audit-details {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .audit-info-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .audit-timeline {
+            list-style: none;
+            padding: 0;
+            position: relative;
+        }
+
+        .audit-timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: #ddd;
+        }
+
+        .timeline-item {
+            margin-left: 40px;
+            padding: 15px;
+            border-left: 2px solid #007bff;
+            margin-bottom: 20px;
+        }
+
+        .audit-results {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .result-card {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .audit-config-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Estilos para área de administración */
+        .admin-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .user-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-list th,
+        .user-list td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-entry:hover {
+            background-color: #f8f9fa;
+        }
+
+        .integration-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .maintenance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-links">
+            <a href="#" onclick="showSection('audit-section')">Auditoría</a>
+            <a href="#" onclick="showSection('admin-section')">Administración</a>
+            <!-- [Otros enlaces de navegación...] -->
+        </div>
+    </nav>
+
+    <!-- Área de Auditoría -->
+    <div id="audit-section" class="section container">
+        <div class="section-nav">
+            <a href="#" onclick="showAuditSection('list')">Lista de Auditorías</a>
+            <a href="#" onclick="showAuditSection('details')">Detalles</a>
+            <a href="#" onclick="showAuditSection('results')">Resultados</a>
+            <a href="#" onclick="showAuditSection('config')">Configuración</a>
+        </div>
+
+        <!-- Lista de Auditorías -->
+        <div id="audit-list" class="audit-subsection">
+            <h2>Lista de Auditorías</h2>
+            <div class="actions">
+                <button onclick="createNewAudit()">Nueva Auditoría</button>
+                <button onclick="exportAuditList()">Exportar Lista</button>
+            </div>
+            <table class="audit-list-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Fecha Inicio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>AUD-2024-001</td>
+                        <td>Auditoría Financiera Q1</td>
+                        <td>Financiera</td>
+                        <td><span class="audit-status status-active">Activa</span></td>
+                        <td>01/03/2024</td>
+                        <td>
+                            <button onclick="viewAuditDetails('AUD-2024-001')">Ver</button>
+                            <button onclick="editAudit('AUD-2024-001')">Editar</button>
+                        </td>
+                    </tr>
+                    <!-- Más filas de auditorías... -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Detalles de Auditoría -->
+        <div id="audit-details" class="audit-subsection" style="display: none;">
+            <h2>Detalles de Auditoría</h2>
+            <div class="audit-details">
+                <div class="main-info">
+                    <div class="audit-info-card">
+                        <h3>Información General</h3>
+                        <p><strong>ID:</strong> AUD-2024-001</p>
+                        <p><strong>Nombre:</strong> Auditoría Financiera Q1</p>
+                        <p><strong>Tipo:</strong> Financiera</p>
+                        <p><strong>Estado:</strong> Activa</p>
+                        <p><strong>Fecha Inicio:</strong> 01/03/2024</p>
+                        <p><strong>Responsable:</strong> Juan Pérez</p>
+                    </div>
+
+                    <div class="audit-info-card">
+                        <h3>Documentos Asociados</h3>
+                        <ul>
+                            <li>Plan de Auditoría.pdf</li>
+                            <li>Estados Financieros Q1.xlsx</li>
+                            <li>Evidencias.zip</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    <h3>Línea de Tiempo</h3>
+                    <ul class="audit-timeline">
+                        <li class="timeline-item">
+                            <h4>Inicio de Auditoría</h4>
+                            <p>01/03/2024 - Se inició el proceso de auditoría</p>
+                        </li>
+                        <li class="timeline-item">
+                            <h4>Recopilación de Documentos</h4>
+                            <p>05/03/2024 - Se completó la recopilación inicial</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados de Auditoría -->
+        <div id="audit-results" class="audit-subsection" style="display: none;">
+            <h2>Resultados de Auditoría</h2>
+            <div class="audit-results">
+                <div class="result-card">
+                    <h3>Hallazgos Principales</h3>
+                    <ul>
+                        <li>Discrepancia en conciliación bancaria</li>
+                        <li>Documentación incompleta en proceso de compras</li>
+                        <li>Mejoras necesarias en control interno</li>
+                    </ul>
+                </div>
+
+                <div class="result-card">
+                    <h3>Métricas Clave</h3>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <h4>Cumplimiento</h4>
+                            <p>85%</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Riesgo</h4>
+                            <p>Medio</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Recomendaciones</h3>
+                    <ul>
+                        <li>Implementar proceso de revisión mensual</li>
+                        <li>Actualizar políticas de documentación</li>
+                        <li>Fortalecer controles internos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Auditoría -->
+        <div id="audit-config" class="audit-subsection" style="display: none;">
+            <h2>Configuración de Auditoría</h2>
+            
+            <div class="audit-config-section">
+                <h3>Plantillas de Auditoría</h3>
+                <div class="form-group">
+                    <label>Plantilla Activa:</label>
+                    <select>
+                        <option>Auditoría Financiera</option>
+                        <option>Auditoría Operativa</option>
+                        <option>Auditoría de Cumplimiento</option>
+                    </select>
+                </div>
+                <button onclick="editTemplate()">Editar Plantilla</button>
+            </div>
+
+            <div class="audit-config-section">
+                <h3>Reglas de Validación</h3>
+                <div class="form-group">
+                    <label>Conjunto de Reglas:</label>
+                    <select>
+                        <option>Reglas Financieras</option>
+                        <option>Reglas Operativas</option>
+                        <option>Reglas de Cumplimiento</option>
+                    </select>
+                </div>
+                <button onclick="configureRules()">Configurar Reglas</button>
+            </div>
+
+            <div class="audit-config-section">
+                <h3>Notificaciones</h3>
+                <div class="form-group">
+                    <label><input type="checkbox"> Notificar al iniciar auditoría</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox"> Notificar al completar hitos</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox"> Notificar al finalizar auditoría</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones para el área de auditoría
+        function showAuditSection(section) {
+            document.querySelectorAll('.audit-subsection').forEach(div => div.style.display = 'none');
+            document.getElementById(`audit-${section}`).style.display = 'block';
+        }
+
+        function createNewAudit() {
+            alert('Creando nueva auditoría...');
+        }
+
+        function exportAuditList() {
+            alert('Exportando lista de auditorías...');
+        }
+
+        function viewAuditDetails(id) {
+            showAuditSection('details');
+        }
+
+        function editAudit(id) {
+            alert('Editando auditoría ' + id);
+        }
+
+        function editTemplate() {
+            alert('Abriendo editor de plantillas...');
+        }
+
+        function configureRules() {
+            alert('Abriendo configuración de reglas...');
+        }
+
+        // Mostrar lista de auditorías por defecto
+        showAuditSection('list');
+    </script>
+</body>
+</html>
