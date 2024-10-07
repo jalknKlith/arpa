@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARPA</title>
+  <title>ARPA - Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -80,27 +80,26 @@
       <div id="errorMessage" class="message"></div>
     </form>
 
-    </div>
+    <script>
+      const errorMessage = document.getElementById('errorMessage');
+      const loginForm = document.getElementById('loginForm');
 
-  <script>
-    const errorMessage = document.getElementById('errorMessage');
-    const loginForm = document.getElementById('loginForm');
+      loginForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Evita que el formulario se recargue
 
-    loginForm.addEventListener('submit', function(event) {
-      event.preventDefault(); // Evita que el formulario se recargue
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+        // Simulación de validación de credenciales (reemplazar con integración real)
+        if (username !== 'auditor' || password !== '0000') {
+          errorMessage.innerText = 'Usuario o contraseña incorrectos.';
+          return;
+        }
 
-      // Simulación de validación de credenciales (reemplazar con integración real)
-      if (username !== 'auditor' || password !== '0000') {
-        errorMessage.innerText = 'Usuario o contraseña incorrectos.';
-        return;
-      }
-
-      // En caso de credenciales correctas, redirigir a la página principal de la app
-      window.location.href = 'auditoria.html'; // Reemplazar con la URL real
-    });
-  </script>
+        // En caso de credenciales correctas, redirigir a la página principal de la app
+        window.location.href = 'auditoria.html'; // Reemplazar con la URL real
+      });
+    </script>
+  </div>
 </body>
 </html>
