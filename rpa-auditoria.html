@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<!-- [Head section con estilos previos...] -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RPA de Auditoría con IA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-cognitiveservices-speech-sdk/1.32.0/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    <style>
+        /* [Estilos previos...] */
+        
+        /* Nuevos estilos para el área de IA */
+        .chat-container {
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+        }
+
+        .chat-input textarea {
+            flex-grow: 1;
+            margin-right: 10px;
+            resize: none;
+            height: 40px;
+        }
+
+        .analysis-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .tool-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tool-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .analysis-result {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-links">
+            <a href="#" onclick="showSection('user-section')">Área de Usuario</a>
+            <a href="#" onclick="showSection('audit-section')">Área de Auditoría</a>
+            <a href="#" onclick="showSection('admin-section')">Área de Administración</a>
+            <a href="#" onclick="showSection('ai-section')">Inteligencia Artificial</a>
+            <a href="#" onclick="logout()">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- [Secciones previas...] -->
+
+    <!-- Nueva Área de Inteligencia Artificial -->
+    <div id="ai-section" class="section container">
+        <h2>Asistente de Auditoría IA</h2>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Análisis Realizados</h3>
+                <div class="stat-number">24</div>
+            </div>
+            <div class="stat-card">
+                <h3>Precisión Promedio</h3>
+                <div class="stat-number">95%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tiempo Ahorrado</h3>
+                <div class="stat-number">45h</div>
+            </div>
+        </div>
+
+        <div class="tool-selection">
+            <div class="tool-card" onclick="selectTool('risk')">
+                <h3>Análisis de Riesgos</h3>
+                <p>Identifica y evalúa riesgos potenciales en documentos y procesos.</p>
+            </div>
+            <div class="tool-card" onclick="selectTool('compliance')">
+                <h3>Verificación de Cumplimiento</h3>
+                <p>Analiza el cumplimiento normativo y regulatorio.</p>
+            </div>
+            <div class="tool-card" onclick="selectTool('fraud')">
+                <h3>Detección de Fraude</h3>
+                <p>Identifica patrones y anomalías sospechosas.</p>
+            </div>
+            <div class="tool-card" onclick="selectTool('report')">
+                <h3>Generación de Informes</h3>
+                <p>Crea informes detallados basados en análisis de IA.</p>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message ai-message">
+                    ¡Hola! Soy tu asistente de auditoría IA. ¿En qué puedo ayudarte hoy?
+                </div>
+            </div>
+            <div class="chat-input">
+                <textarea 
+                    id="user-input" 
+                    placeholder="Escribe tu consulta aquí..."
+                    onkeypress="handleKeyPress(event)"></textarea>
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <h3>Análisis en Curso</h3>
+            <div class="form-group">
+                <label for="analysisFile">Cargar Documento para Análisis:</label>
+                <input type="file" id="analysisFile" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                <button onclick="analyzeDocument()">Iniciar Análisis</button>
+            </div>
+            <div class="analysis-result" id="analysis-result">
+                <!-- Resultados del análisis aparecerán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // [Scripts previos...]
+
+        // Nuevas funciones para el área de IA
+        let selectedTool = null;
+
+        function selectTool(tool) {
+            selectedTool = tool;
+            const message = `Has seleccionado la herramienta de ${getToolName(tool)}. ¿Cómo puedo ayudarte con esto?`;
+            addMessage(message, 'ai');
+        }
+
+        function getToolName(tool) {
+            const tools = {
+                'risk': 'Análisis de Riesgos',
+                'compliance': 'Verificación de Cumplimiento',
+                'fraud': 'Detección de Fraude',
+                'report': 'Generación de Informes'
+            };
+            return tools[tool] || tool;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // Simular respuesta de la IA
+                setTimeout(() => {
+                    const aiResponse = generateAIResponse(message);
+                    addMessage(aiResponse, 'ai');
+                }, 1000);
+            }
+        }
+
+        function addMessage(message, type) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = message;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateAIResponse(message) {
+            // Simulación de respuestas basadas en el contexto
+            if (selectedTool === 'risk') {
+                return "Basado en el análisis de riesgos, he identificado los siguientes puntos críticos...";
+            } else if (selectedTool === 'compliance') {
+                return "He revisado las regulaciones aplicables y encontré las siguientes observaciones...";
+            } else if (selectedTool === 'fraud') {
+                return "El análisis de patrones ha revelado algunas anomalías que requieren atención...";
+            } else if (selectedTool === 'report') {
+                return "Generando informe detallado. ¿Hay algún aspecto específico que quieras que destaque?";
+            } else {
+                return "Entiendo tu consulta. ¿Podrías proporcionarme más detalles para ayudarte mejor?";
+            }
+        }
+
+        function analyzeDocument() {
+            const file = document.getElementById('analysisFile').files[0];
+            if (!file) {
+                alert('Por favor selecciona un documento para analizar');
+                return;
+            }
+
+            const resultDiv = document.getElementById('analysis-result');
+            resultDiv.innerHTML = '<p>Analizando documento...</p>';
+
+            // Simulación de análisis
+            setTimeout(() => {
+                resultDiv.innerHTML = `
+                    <h4>Resultados del Análisis</h4>
+                    <p><strong>Documento:</strong> ${file.name}</p>
+                    <p><strong>Nivel de Riesgo:</strong> Medio</p>
+                    <p><strong>Cumplimiento:</strong> 87%</p>
+                    <p><strong>Hallazgos:</strong></p>
+                    <ul>
+                        <li>Se identificaron 3 áreas de mejora en procesos internos</li>
+                        <li>2 posibles discrepancias en registros financieros</li>
+                        <li>Recomendaciones de actualización en políticas de cumplimiento</li>
+                    </ul>
+                `;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
