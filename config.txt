@@ -1,0 +1,8 @@
+# Crea un entorno virtual
+python -m venv venv
+
+# Activa el entorno virtual
+source venv/bin/activate
+
+# Instala las dependencias necesarias
+pip install pandas numpy matplotlib seaborn openpyxl
